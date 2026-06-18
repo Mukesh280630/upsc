@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Hub | Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="login-body">
+
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="logo-box"><img src="logo.jpg" alt="UPSC Hub Logo"></div>
+            <h2 id="formTitle">Welcome Back</h2>
+            <p id="formSubtitle">Log in to access your UPSC materials</p>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group"><input type="email" id="loginEmail" placeholder="Enter your email" required></div>
+                <div class="input-group"><input type="password" id="loginPass" placeholder="Enter your password" required></div>
+                <button type="submit" class="btn-primary">Login</button>
+                <p class="toggle-text" style="margin-top:20px; font-size:0.9rem;">New student? <a href="#" onclick="toggleForm('register')">Create an account</a></p>
+            </form>
+
+            <form id="registerForm" onsubmit="handleRegister(event)" style="display: none;">
+                <div class="input-group"><input type="text" id="regName" placeholder="Full Name" required></div>
+                <div class="input-group"><input type="email" id="regEmail" placeholder="Email Address" required></div>
+                <div class="input-group"><input type="password" id="regPass" placeholder="Create Password" required></div>
+                <button type="submit" class="btn-primary">Register</button>
+                <p class="toggle-text" style="margin-top:20px; font-size:0.9rem;">Already have an account? <a href="#" onclick="toggleForm('login')">Log in here</a></p>
+            </form>
+
+            <div id="pendingForm" style="display: none;">
+                <i class="fas fa-user-clock" style="font-size: 3.5rem; color: #f59e0b; margin-bottom: 20px;"></i>
+                <h3 style="color: #0f172a; margin-bottom: 10px; font-size:1.4rem;">Approval Required</h3>
+                <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 25px;">Your account is currently waiting for admin access. You cannot log in right now.</p>
+                <input type="hidden" id="pendingEmail">
+                <button onclick="sendAdminMessage()" class="btn-primary" style="background: #f59e0b; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);">
+                    <i class="fas fa-paper-plane"></i> Send "Please Approve" to Admin
+                </button>
+                <p class="toggle-text"><a href="#" onclick="toggleForm('login')" style="color:#64748b;"><i class="fas fa-arrow-left"></i> Back to Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm(type) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('pendingForm').style.display = 'none';
+
+            if(type === 'register') {
+                document.getElementById('registerForm').style.display = 'block';
+                document.getElementById('formTitle').innerText = 'Student Registration';
+                document.getElementById('formSubtitle').innerText = 'Create an account to access resources';
+            } else if(type === 'pending') {
+                document.getElementById('pendingForm').style.display = 'block';
+                document.getElementById('formTitle').innerText = 'Access Restricted';
+                document.getElementById('formSubtitle').innerText = 'Contact admin for permission';
+            } else {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('formTitle').innerText = 'Welcome Back';
+                document.getElementById('formSubtitle').innerText = 'Log in to access your UPSC materials';
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            
+            // GENERATE STUDENT ID (Starts at 100)
+            let maxId = 99;
+            students.forEach(s => {
+                if(s.studentId && s.studentId > maxId) maxId = s.studentId;
+            });
+            let newId = maxId + 1;
+
+            let newStudent = {
+                studentId: newId,
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPass').value,
+                dateJoined: new Date().toLocaleDateString(),
+                status: 'pending', 
+                nudgeMessage: '',
+                lastActive: 0
+            };
+            
+            if(students.some(s => s.email === newStudent.email) || newStudent.email === 'kannamukesh33@gmail.com') {
+                alert('This email is already registered!'); return;
+            }
+
+            students.push(newStudent);
+            localStorage.setItem('upscStudents', JSON.stringify(students));
+            
+            alert(`Registration successful! Your Student ID is ${newId}. Please wait for Admin approval.`);
+            document.getElementById('registerForm').reset();
+            
+            document.getElementById('pendingEmail').value = newStudent.email;
+            toggleForm('pending');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPass').value;
+
+            if (email === 'kannamukesh33@gmail.com' && pass === 'mukesh28') {
+                localStorage.setItem('loggedInUser', JSON.stringify({type: 'admin', name: 'Admin'}));
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let validStudent = students.find(s => s.email === email && s.password === pass);
+
+            if (validStudent) {
+                if (validStudent.status === 'pending' || validStudent.status === 'denied') {
+                    document.getElementById('pendingEmail').value = validStudent.email;
+                    toggleForm('pending');
+                    return;
+                }
+                localStorage.setItem('loggedInUser', JSON.stringify({type: 'student', name: validStudent.name, email: validStudent.email, studentId: validStudent.studentId}));
+                window.location.href = 'index.html';
+            } else {
+                alert('Invalid email or password. Please try again.');
+            }
+        }
+
+        function sendAdminMessage() {
+            let email = document.getElementById('pendingEmail').value;
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let sIndex = students.findIndex(s => s.email === email);
+            
+            if(sIndex !== -1) {
+                students[sIndex].nudgeMessage = "Please kindly approve my access.";
+                localStorage.setItem('upscStudents', JSON.stringify(students));
+                alert("Message sent to Admin successfully! Please check back later.");
+            }
+        }
+    </script>
+</body>
+</html>

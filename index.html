@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Hub | Student Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- MODALS -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closePaymentModal()"><i class="fas fa-times"></i></button>
+            <h2 id="payBookTitle" style="font-size:1.3rem; margin-bottom:10px; color:#0f172a; font-weight:800;">Book Title</h2>
+            <div style="background:#fef2f2; border:1px solid #f87171; color:#b91c1c; padding:15px; border-radius:10px; margin-bottom:20px; font-weight:800; font-size:1.5rem; box-shadow: 0 4px 6px rgba(239,68,68,0.1);">
+                Amount Due: ₹<span id="payAmount">0</span>
+            </div>
+            
+            <p style="text-align:left; font-size:0.95rem; margin-bottom:15px; color:#475569; font-weight:600;"><strong>1. Pay via UPI:</strong> Scan the QR code below.</p>
+            
+            <div style="width:160px; height:160px; margin:0 auto 20px; border-radius:12px; overflow:hidden; border: 2px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <img src="qr code.png" alt="Payment QR Code" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='logo.jpg'">
+            </div>
+            
+            <p style="text-align:left; font-size:0.95rem; margin-bottom:8px; color:#475569; font-weight:600;"><strong>2. Enter Payment Details:</strong></p>
+            <input type="text" id="payMobile" placeholder="Your Mobile Number" style="width:100%; padding:12px 15px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px; font-size:0.95rem; background:#f8fafc;" required>
+            <input type="text" id="payUpiId" placeholder="Your UPI ID (e.g. name@okhdfc)" style="width:100%; padding:12px 15px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:12px; font-size:0.95rem; background:#f8fafc;" required>
+            <input type="text" id="transactionId" placeholder="Transaction ID (UTR)" style="width:100%; padding:12px 15px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:25px; font-family:monospace; font-size:0.95rem; background:#f8fafc;" required>
+            
+            <input type="hidden" id="payBookId">
+            <button class="btn-primary" onclick="submitPayment()" style="padding:14px; font-size:1.05rem;">Submit Request</button>
+        </div>
+    </div>
+
+    <div id="welcomeModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div style="font-size: 3.5rem; color: #0e7c41; margin-bottom: 15px;"><i class="fas fa-graduation-cap"></i></div>
+            <h2 style="font-weight:800; color:#0f172a;">Your Gateway to Civil Services</h2>
+            <p style="color:#64748b; font-size:1.05rem; margin-top:10px;">Access premium notes, NCERTs, and monthly magazines in one click.</p>
+            <button class="btn-primary" style="width: auto; padding: 12px 40px; margin-top: 25px; display:inline-block;" onclick="closeModal()">Start Studying</button>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="appSidebar">
+            <div class="logo-area">
+                <div class="logo-box"><img src="logo.jpg" alt="Logo"></div>
+                <div class="logo-text"><h3>UPSC Hub</h3><p>Student Portal</p></div>
+            </div>
+            <nav class="side-menu">
+                <button class="side-btn active" onclick="filterCategory('all')"><i class="fas fa-th-large"></i> <span>Dashboard</span></button>
+                <button class="side-btn" onclick="filterCategory('ncert')"><i class="fas fa-book"></i> <span>NCERT Books</span></button>
+                <button class="side-btn" onclick="filterCategory('standard-books')"><i class="fas fa-bookmark"></i> <span>Standard Books</span></button>
+                <button class="side-btn" onclick="filterCategory('current-affairs')"><i class="fas fa-newspaper"></i> <span>Current Affairs</span></button>
+                <button class="side-btn" onclick="filterCategory('yojana')"><i class="fas fa-book-open"></i> <span>Yojana & Kurukshetra</span></button>
+                <button class="side-btn" onclick="filterCategory('pib')"><i class="fas fa-university"></i> <span>PIB Live Portal</span></button>
+            </nav>
+            <div class="user-panel-link" onclick="logoutStudent()">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-user-circle" style="font-size:1.2rem;"></i> <span id="studentNameDisplay">Loading...</span>
+                </div>
+                <i class="fas fa-sign-out-alt" title="Logout"></i>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content" id="mainContent">
+            <!-- Top Navbar with dynamic title -->
+            <header class="top-navbar">
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="navbar-title" id="currentCategoryTitle">Latest Materials</h1>
+                
+                <div class="header-right">
+                    <input type="date" id="dateFilterInput" onchange="filterBooks()" style="padding: 10px 15px; border-radius: 20px; border: 1px solid #e2e8f0; outline: none; color: #475569; font-family: 'Inter', sans-serif; background:#f8fafc; cursor:pointer;">
+                    <div class="expandable-search" id="searchContainer">
+                        <div class="search-icon-btn" onclick="toggleSearch()" title="Click to search"><i class="fas fa-search"></i></div>
+                        <input type="text" id="searchInput" placeholder="Search title or author..." onkeyup="filterBooks()">
+                    </div>
+                </div>
+            </header>
+
+            <!-- SCROLLING ANNOUNCEMENT BAR -->
+            <div id="announcementBar" style="display: none; background: #fef9c3; border-bottom: 1px solid #fde68a; padding: 10px 30px; color: #b45309; font-weight: 600; font-size: 0.95rem; align-items: center; gap: 10px;">
+                <i class="fas fa-bell" style="animation: ring 2s infinite;"></i>
+                <marquee id="announcementText" scrollamount="6" style="flex-grow: 1;"></marquee>
+            </div>
+
+            <div class="resources-area">
+                
+                <!-- Standard List Content -->
+                <div id="standardContentArea">
+                    <div id="bookGrid" class="list-container"></div>
+                    <div id="noResults" style="display:none; text-align:center; padding: 60px; color: #94a3b8;">
+                        <i class="fas fa-search" style="font-size: 2.5rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p style="font-weight:500; font-size:1.1rem;">No materials found matching your criteria.</p>
+                    </div>
+                </div>
+
+                <!-- Secure PIB Launchpad -->
+                <div id="pibLaunchpadContainer" style="display: none; padding: 80px 40px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; margin-top: 10px;">
+                    <div style="font-size: 5rem; color: #0e7c41; margin-bottom: 25px;"><i class="fas fa-landmark"></i></div>
+                    <h3 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 15px; letter-spacing:-0.5px;">Press Information Bureau (Live)</h3>
+                    <p style="color: #64748b; margin-bottom: 35px; font-size: 1.1rem; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto; font-weight:500;">
+                        To ensure data security and prevent tracking, the Government of India requires official portals to be viewed in a secure, isolated window. 
+                    </p>
+                    <a href="https://www.pib.gov.in/allRel.aspx?reg=48&lang=1" target="_blank" style="display: inline-flex; align-items: center; gap: 12px; background: #0e7c41; color: white; padding: 16px 36px; border-radius: 10px; text-decoration: none; font-size: 1.15rem; font-weight: 700; transition: 0.3s; box-shadow: 0 6px 15px rgba(14, 124, 65, 0.25);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        Launch Official PIB Portal <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <div style="margin-top: 50px; padding-top: 25px; border-top: 1px solid #f1f5f9; display: inline-block;">
+                        <p style="font-size: 0.9rem; color: #94a3b8; display: flex; align-items: center; gap: 8px; font-weight:600;"><i class="fas fa-shield-alt"></i> Safe routing via UPSC Hub</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- FLOATING CHAT WIDGET -->
+    <div class="chat-widget">
+        <button class="chat-toggle-btn" onclick="toggleChatWindow()"><i class="fas fa-comments"></i></button>
+        <div class="chat-window" id="studentChatWindow">
+            <div class="chat-header">
+                <span><i class="fas fa-headset" style="margin-right:8px;"></i> Support Chat</span>
+                <i class="fas fa-times" style="cursor:pointer; font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='white'" onclick="toggleChatWindow()"></i>
+            </div>
+            <div class="chat-body" id="studentChatBody">
+                <div style="text-align:center; color:#94a3b8; margin-top:20px; font-weight:500;">Send a message to admin...</div>
+            </div>
+            <div class="chat-footer">
+                <input type="text" id="studentChatInput" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendStudentMessage()">
+                <button onclick="sendStudentMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let currentUser = null;
+        let liveTimer;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            let userStr = localStorage.getItem('loggedInUser');
+            if (!userStr) { window.location.href = 'login.html'; return; }
+            currentUser = JSON.parse(userStr);
+            if (currentUser.type !== 'student') { window.location.href = 'login.html'; return; }
+            
+            document.getElementById('studentNameDisplay').innerText = `Hi, ${currentUser.name.split(' ')[0]}`;
+
+            if (!sessionStorage.getItem('welcomeShown')) {
+                document.getElementById('welcomeModal').classList.add('show');
+                sessionStorage.setItem('welcomeShown', 'true'); 
+            }
+
+            // Load Announcement
+            let announcement = localStorage.getItem('upscAnnouncement');
+            if (announcement && announcement.trim() !== '') {
+                document.getElementById('announcementBar').style.display = 'flex';
+                document.getElementById('announcementText').innerText = announcement;
+            }
+
+            updateLiveStatus();
+            liveTimer = setInterval(() => {
+                updateLiveStatus();
+                if(document.getElementById('studentChatWindow').classList.contains('active')) {
+                    loadStudentChat(false);
+                }
+            }, 3000); 
+        });
+
+        function updateLiveStatus() {
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let sIndex = students.findIndex(s => s.email === currentUser.email);
+            
+            if (sIndex !== -1) {
+                if (students[sIndex].status === 'denied') {
+                    clearInterval(liveTimer);
+                    alert("Your access has been revoked by the administrator.");
+                    localStorage.removeItem('loggedInUser');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                students[sIndex].lastActive = Date.now();
+                localStorage.setItem('upscStudents', JSON.stringify(students));
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let sIndex = students.findIndex(s => s.email === currentUser.email);
+            if(sIndex !== -1) { students[sIndex].lastActive = 0; localStorage.setItem('upscStudents', JSON.stringify(students)); }
+        });
+
+        function toggleChatWindow() {
+            let win = document.getElementById('studentChatWindow');
+            win.classList.toggle('active');
+            if(win.classList.contains('active')) {
+                loadStudentChat(true);
+                document.getElementById('studentChatInput').focus();
+            }
+        }
+
+        function loadStudentChat(forceScroll) {
+            let chats = JSON.parse(localStorage.getItem('upscChats')) || {};
+            let history = chats[currentUser.email] || [];
+            let body = document.getElementById('studentChatBody');
+            
+            let isNearBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 50;
+
+            body.innerHTML = '';
+            if(history.length === 0) {
+                body.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:20px; font-weight:500;">Send a message to admin...</div>';
+            } else {
+                history.forEach(msg => {
+                    if(msg.sender === 'admin') {
+                        body.innerHTML += `<div class="msg-bubble msg-admin">${msg.text}</div>`;
+                    } else {
+                        body.innerHTML += `<div class="msg-bubble msg-student">${msg.text}</div>`;
+                    }
+                });
+            }
+            if(forceScroll || isNearBottom) body.scrollTop = body.scrollHeight;
+        }
+
+        function sendStudentMessage() {
+            let input = document.getElementById('studentChatInput');
+            let text = input.value.trim();
+            if(!text) return;
+
+            let chats = JSON.parse(localStorage.getItem('upscChats')) || {};
+            if(!chats[currentUser.email]) chats[currentUser.email] = [];
+            
+            chats[currentUser.email].push({ sender: 'student', text: text, timestamp: Date.now() });
+            localStorage.setItem('upscChats', JSON.stringify(chats));
+            
+            input.value = '';
+            loadStudentChat(true);
+        }
+
+        function toggleSidebar() { document.getElementById('appSidebar').classList.toggle('collapsed'); document.getElementById('mainContent').classList.toggle('expanded'); }
+
+        function logoutStudent() {
+            if (confirm("Are you sure you want to log out?")) {
+                let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+                let sIndex = students.findIndex(s => s.email === currentUser.email);
+                if(sIndex !== -1) { students[sIndex].lastActive = 0; localStorage.setItem('upscStudents', JSON.stringify(students)); }
+                localStorage.removeItem('loggedInUser');
+                window.location.href = 'login.html';
+            }
+        }
+        
+        function closeModal() { document.getElementById('welcomeModal').classList.remove('show'); }
+        function closePaymentModal() { document.getElementById('paymentModal').classList.remove('show'); }
+        
+        function toggleSearch() { 
+            let container = document.getElementById('searchContainer'); 
+            let input = document.getElementById('searchInput'); 
+            container.classList.toggle('active'); 
+            if(container.classList.contains('active')) { 
+                input.focus(); 
+            } else { 
+                input.value = ''; 
+                if (typeof filterBooks === "function") filterBooks(); 
+            } 
+        }
+
+        function requestPurchase(bookId, title, price) {
+            document.getElementById('payBookTitle').innerText = title; 
+            document.getElementById('payAmount').innerText = price; 
+            document.getElementById('payBookId').value = bookId; 
+            document.getElementById('payMobile').value = ''; 
+            document.getElementById('payUpiId').value = ''; 
+            document.getElementById('transactionId').value = ''; 
+            document.getElementById('paymentModal').classList.add('show');
+        }
+
+        function submitPayment() {
+            let mobile = document.getElementById('payMobile').value.trim(); 
+            let upiId = document.getElementById('payUpiId').value.trim(); 
+            let txId = document.getElementById('transactionId').value.trim();
+            
+            if(!mobile || !upiId || !txId) { alert("Please fill in all payment details."); return; }
+            
+            let request = { 
+                requestId: 'req_' + Date.now(), 
+                studentEmail: currentUser.email, 
+                studentName: currentUser.name, 
+                studentId: currentUser.studentId || 0,
+                bookId: document.getElementById('payBookId').value, 
+                bookTitle: document.getElementById('payBookTitle').innerText, 
+                price: document.getElementById('payAmount').innerText, 
+                mobile: mobile, 
+                upiId: upiId, 
+                transactionId: txId, 
+                timestamp: Date.now(),
+                status: 'pending' 
+            };
+            
+            let requests = JSON.parse(localStorage.getItem('upscAccessRequests')) || []; 
+            requests.push(request); 
+            localStorage.setItem('upscAccessRequests', JSON.stringify(requests));
+            
+            alert("Request submitted! An admin will verify your payment and grant access shortly."); 
+            closePaymentModal(); 
+            if(typeof loadBooksFromStorage === 'function') loadBooksFromStorage();
+        }
+
+        // Overriding loadBooksFromStorage to enforce strict inline styles for images
+        // FIXED: Removed the date display from the item details.
+        window.loadBooksFromStorage = function() {
+            let storedBooks = JSON.parse(localStorage.getItem('upscBooks')) || [];
+            let container = document.getElementById('bookGrid');
+            if (!container) return;
+
+            container.innerHTML = ''; 
+            if (typeof currentCategory !== 'undefined' && currentCategory === 'pib') return; 
+
+            if (storedBooks.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 60px; color: #94a3b8; font-weight:500;"><i class="fas fa-folder-open" style="font-size:2rem; margin-bottom:10px;"></i><br>No study materials have been uploaded yet.</div>';
+                return;
+            }
+
+            let searchDate = document.getElementById('dateFilterInput') ? document.getElementById('dateFilterInput').value : '';
+            let searchText = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toUpperCase() : '';
+
+            let visibleBooks = storedBooks.filter(book => {
+                let matchesCategory = (typeof currentCategory === 'undefined' || currentCategory === 'all' || book.category === currentCategory);
+                let matchesDate = (searchDate === '' || book.dateAdded === searchDate);
+                let matchesText = (searchText === '' || book.title.toUpperCase().includes(searchText) || book.author.toUpperCase().includes(searchText));
+                return matchesCategory && matchesDate && matchesText;
+            });
+
+            if (visibleBooks.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('noResults').style.display = 'none';
+            }
+
+            let groupedBooks = {};
+            visibleBooks.forEach(book => {
+                let groupKey = "General";
+                if (book.category === 'pib' && book.ministry) groupKey = book.ministry;
+                else if (book.subject) groupKey = book.subject;
+                if (!groupedBooks[groupKey]) groupedBooks[groupKey] = [];
+                groupedBooks[groupKey].push(book);
+            });
+
+            let userStr = localStorage.getItem('loggedInUser');
+            let userEmail = userStr ? JSON.parse(userStr).email : '';
+            let purchases = JSON.parse(localStorage.getItem('upscPurchases')) || {};
+            let userPurchases = purchases[userEmail] || [];
+            let requests = JSON.parse(localStorage.getItem('upscAccessRequests')) || [];
+
+            for (let group in groupedBooks) {
+                let groupHTML = `<h3 class="list-group-header">${group}</h3>`;
+                
+                groupedBooks[group].forEach(book => {
+                    let safeImg = book.image ? book.image.match(/(https?:\/\/[^\s"'>]+)/) : null;
+                    safeImg = safeImg ? safeImg[1] : "";
+                    
+                    let visualHTML = safeImg !== "" 
+                        ? `<img src="${safeImg}" alt="Cover" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.src='logo.jpg'">` 
+                        : `<div class="icon-placeholder"><i class="fas fa-book"></i></div>`;
+
+                    let actionButtonHTML = '';
+                    if (book.price === 0 || userPurchases.includes(book.id)) {
+                        actionButtonHTML = `<a href="${book.link}" class="btn-download-small" target="_blank" style="color:white; text-decoration:none;"><i class="fas fa-download"></i> Download</a>`;
+                    } else {
+                        let isPending = requests.some(req => req.studentEmail === userEmail && req.bookId === book.id && req.status === 'pending');
+                        if(isPending) {
+                            actionButtonHTML = `<button class="btn-download-small" style="background:#f59e0b; cursor:not-allowed; box-shadow:none; color:white;" disabled><i class="fas fa-clock"></i> Pending</button>`;
+                        } else {
+                            actionButtonHTML = `<button onclick="requestPurchase('${book.id}', '${book.title.replace(/'/g, "\\'")}', ${book.price})" class="btn-download-small" style="background:#ef4444; color:white;"><i class="fas fa-lock"></i> Buy (₹${book.price})</button>`;
+                        }
+                    }
+
+                    groupHTML += `
+                        <div class="list-item">
+                            <div class="item-img-box">${visualHTML}</div>
+                            <div class="item-details">
+                                <h4>${book.title} ${book.isNew ? '<span class="badge-round" style="margin-left:8px; font-size:0.65rem; padding:2px 6px;">New</span>' : ''}</h4>
+                                <p>${book.author}</p>
+                            </div>
+                            <div class="item-actions">
+                                <span class="badge-pill">${book.category.replace('-', ' ')}</span>
+                                ${actionButtonHTML}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.insertAdjacentHTML('beforeend', groupHTML);
+            }
+        };
+
+        if(typeof loadBooksFromStorage === 'function') loadBooksFromStorage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Hub | Admin Console</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-body">
+
+    <div id="adminApprovalModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 750px; padding:30px;">
+            <button class="close-btn" onclick="closeAdminModals()"><i class="fas fa-times"></i></button>
+            <h2 style="font-size:1.5rem; margin-bottom:5px; color:#0f172a; font-weight:800;" id="modalStudentName">Student Requests</h2>
+            <p style="color:#64748b; font-size:0.95rem; margin-bottom:25px;" id="modalStudentMeta">ID: #000 | email@gmail.com</p>
+            
+            <div id="modalApprovalsBody" style="display: flex; flex-direction: column; gap: 15px;">
+                </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <aside class="admin-sidebar" id="appSidebar">
+            <div class="logo-area">
+                <div class="logo-box"><img src="logo.jpg" alt="Admin Logo"></div>
+                <div class="logo-text"><h3>UPSC Hub</h3><p>Admin Console</p></div>
+            </div>
+            <nav class="side-menu">
+                <button id="btnUpload" class="side-btn active" onclick="switchTab('uploadTab', this, 'Upload New Material')"><i class="fas fa-cloud-upload-alt"></i> <span>Upload Material</span></button>
+                <button id="btnManage" class="side-btn" onclick="switchTab('manageTab', this, 'Library Management')"><i class="fas fa-list"></i> <span>Manage Library</span></button>
+                <button id="btnApprovals" class="side-btn" onclick="switchTab('approvalsTab', this, 'Student Payment Approvals')"><i class="fas fa-rupee-sign"></i> <span>Approvals <span id="approvalCount" class="badge-round" style="display:none; margin-left:8px;">0</span></span></button>
+                <button id="btnMessages" class="side-btn" onclick="switchTab('messagesTab', this, 'Direct Messages')"><i class="fas fa-comments"></i> <span>Messages</span></button>
+                <button id="btnStudents" class="side-btn" onclick="switchTab('studentsTab', this, 'Registered Students Management')"><i class="fas fa-users"></i> <span>Students</span></button>
+                
+                <button id="btnSettings" class="side-btn" onclick="switchTab('settingsTab', this, 'App Settings & Customization')"><i class="fas fa-cog"></i> <span>App Settings</span></button>
+                
+                <a href="index.html" target="_blank" class="side-btn" style="text-decoration: none;"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
+            </nav>
+            <div class="user-panel-link" onclick="logoutAdmin()">
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+            </div>
+        </aside>
+
+        <main class="admin-main" id="mainContent">
+            
+            <header class="top-navbar">
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <h1 class="navbar-title" id="dynamicNavbarTitle">Upload New Material</h1>
+            </header>
+
+            <div style="padding: 30px; width: 100%;">
+                
+                <div id="uploadTab" class="tab-content" style="display: block;">
+                    <div class="card" style="text-align: left; max-width: 650px;">
+                        <form id="uploadForm" onsubmit="saveBook(event)">
+                            <div class="input-group"><label>Book / Document Title</label><input type="text" id="bookTitle" required></div>
+                            <div class="input-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div><label>Author / Source</label><input type="text" id="bookAuthor" required></div>
+                                <div><label>Price (₹) <span style="font-size:0.8rem;color:#94a3b8; font-weight:400;">(Optional)</span></label><input type="number" id="bookPrice" min="0" placeholder="Leave empty for Free"></div>
+                            </div>
+                            <div class="input-group"><label>Date Added</label><input type="date" id="bookDate" required></div>
+                            <div class="input-group">
+                                <label>Category</label>
+                                <select id="bookCategory" onchange="toggleFields()">
+                                    <option value="standard-books">Standard Books</option>
+                                    <option value="ncert">NCERT Books</option>
+                                    <option value="current-affairs">Current Affairs</option>
+                                    <option value="yojana">Yojana / Kurukshetra</option>
+                                    <option value="pib">PIB Reports</option>
+                                </select>
+                            </div>
+                            <div class="input-group" id="ncertClassGroup" style="display: none;">
+                                <label>NCERT Class</label>
+                                <select id="bookClass"><option value="">Select Class...</option><option value="Class 6">Class 6</option><option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option><option value="Class 10">Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option></select>
+                            </div>
+                            <div class="input-group" id="subjectGroup">
+                                <label>Subject</label>
+                                <input type="text" id="bookSubject" list="subjectOptions" placeholder="Ex: Polity, History, Geography...">
+                                <datalist id="subjectOptions"><option value="Polity"><option value="History"><option value="Geography"><option value="Economy"><option value="Environment & Ecology"><option value="Science & Tech"><option value="International Relations"><option value="Internal Security"><option value="Ethics"></datalist>
+                            </div>
+                            <div class="input-group" id="ministryGroup" style="display: none;">
+                                <label>Ministry (For PIB Reports)</label>
+                                <select id="bookMinistry">
+                                    <option value="">Select Ministry...</option><option value="Prime Minister's Office">Prime Minister's Office</option><option value="Ministry of Finance">Ministry of Finance</option><option value="Other / Miscellaneous">Other / Miscellaneous</option>
+                                </select>
+                            </div>
+                            <div class="input-group"><label>Cover Image Link</label><input type="text" id="bookImage" placeholder="Paste direct image URL here"></div>
+                            <div class="input-group"><label>PDF Download Link</label><input type="text" id="bookLink" required></div>
+                            <button type="submit" id="submitBtn" class="btn-primary" style="padding:14px; font-size:1.05rem;">Publish Material Now</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="manageTab" class="tab-content" style="display: none;">
+                    <div class="card" style="text-align: left; padding: 0; overflow: hidden;">
+                        <div style="padding: 25px; background: white;">
+                            <div class="admin-filters">
+                                <button onclick="filterAdminTable('all')" class="filter-tag active">All Materials</button>
+                                <button onclick="filterAdminTable('ncert')" class="filter-tag">NCERT</button>
+                                <button onclick="filterAdminTable('standard-books')" class="filter-tag">Standard</button>
+                                <button onclick="filterAdminTable('current-affairs')" class="filter-tag">Current Affairs</button>
+                                <button onclick="filterAdminTable('pib')" class="filter-tag">PIB Reports</button>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto; width: 100%;">
+                            <table class="data-table">
+                                <thead><tr><th style="width: 80px;">Cover</th><th>Details</th><th style="width: 150px;">Category</th><th style="width: 120px;">Action</th></tr></thead>
+                                <tbody id="recentUploadsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="approvalsTab" class="tab-content" style="display: none;">
+                    <div class="card" style="text-align: left; padding: 0; overflow: hidden;">
+                        <div style="overflow-x: auto; width: 100%;">
+                            <table class="data-table">
+                                <thead><tr><th>Student ID & Name</th><th>Email Address</th><th>Total Pending</th><th>Action</th></tr></thead>
+                                <tbody id="groupedApprovalsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="messagesTab" class="tab-content" style="display: none;">
+                    <div class="card" style="text-align: left; padding: 0; overflow: hidden;">
+                        <div class="admin-chat-area">
+                            <div class="chat-user-list" id="adminChatUserList"></div>
+                            <div class="admin-chat-box">
+                                <div class="chat-header" id="adminChatHeader"><span>Select a student to start chatting</span></div>
+                                <div class="chat-body" id="adminChatBody" style="height: calc(100% - 110px);"></div>
+                                <div class="chat-footer">
+                                    <input type="text" id="adminChatInput" placeholder="Type a message..." disabled onkeypress="if(event.key === 'Enter') sendAdminMessage()">
+                                    <button onclick="sendAdminMessage()" id="adminChatBtn" disabled><i class="fas fa-paper-plane"></i></button>
+                                    <input type="hidden" id="activeAdminChatEmail">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="studentsTab" class="tab-content" style="display: none;">
+                    <div class="card" style="text-align: left; padding: 0; overflow: hidden;">
+                        <div style="overflow-x: auto; width: 100%;">
+                            <table class="data-table">
+                                <thead><tr><th>Student Info</th><th>Credentials</th><th>Joined Date</th><th>Login Status / Action</th></tr></thead>
+                                <tbody id="studentTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="settingsTab" class="tab-content" style="display: none;">
+                    <div class="card" style="text-align: left; max-width: 650px;">
+                        <div style="margin-bottom:25px;">
+                            <h2 style="font-size: 1.3rem; color: #0f172a; margin-bottom: 5px;"><i class="fas fa-bullhorn" style="color:#0e7c41; margin-right:8px;"></i> Scrolling Announcement</h2>
+                            <p style="font-size:0.9rem; color:#64748b;">Push important updates to the top of the Student Dashboard instantly.</p>
+                        </div>
+                        <div class="input-group">
+                            <label>Announcement Text</label>
+                            <input type="text" id="adminAnnouncementInput" placeholder="Ex: Prelims 2027 Mock Tests are now live!">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="saveAnnouncement()" class="btn-primary" style="padding:14px; font-size:1rem; flex-grow: 1;">Publish Announcement</button>
+                            <button onclick="clearAnnouncement()" class="btn-primary" style="padding:14px; font-size:1rem; background:#ef4444; width: auto;" title="Clear Announcement"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let editIndex = -1;
+        let adminLiveTimer;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            forceCleanDatabase();
+            loadAdminTable('all');
+            loadStudents(); 
+            loadGroupedApprovals(); 
+            loadAdminChatList();
+            document.getElementById('bookDate').valueAsDate = new Date();
+            toggleFields();
+            
+            // Load Announcement setting
+            document.getElementById('adminAnnouncementInput').value = localStorage.getItem('upscAnnouncement') || '';
+
+            adminLiveTimer = setInterval(() => {
+                if(document.getElementById('studentsTab').style.display === 'block') loadStudents();
+                if(document.getElementById('messagesTab').style.display === 'block') {
+                    let activeEmail = document.getElementById('activeAdminChatEmail').value;
+                    if(activeEmail) openAdminChat(activeEmail, false); 
+                }
+            }, 3000);
+        });
+
+        // App Settings Logic
+        function saveAnnouncement() {
+            let text = document.getElementById('adminAnnouncementInput').value.trim();
+            localStorage.setItem('upscAnnouncement', text);
+            alert("Announcement published to student portal!");
+        }
+
+        function clearAnnouncement() {
+            document.getElementById('adminAnnouncementInput').value = '';
+            localStorage.removeItem('upscAnnouncement');
+            alert("Announcement removed.");
+        }
+
+        function closeAdminModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show')); }
+        function toggleSidebar() { document.getElementById('appSidebar').classList.toggle('collapsed'); document.getElementById('mainContent').classList.toggle('expanded'); }
+        function getCleanUrl(input) { if (!input) return ""; let match = input.match(/(https?:\/\/[^\s"'>]+)/); return match ? match[1] : ""; }
+
+        function forceCleanDatabase() {
+            let books = JSON.parse(localStorage.getItem('upscBooks')) || [];
+            let isChanged = false;
+            books.forEach((book, idx) => {
+                if(!book.id) { book.id = 'book_' + Date.now() + '_' + idx; isChanged = true; } 
+                if(book.price === undefined || book.price === null) { book.price = 0; isChanged = true; } 
+                if (book.image) { let cleanImg = getCleanUrl(book.image); if (book.image !== cleanImg) { book.image = cleanImg; isChanged = true; } }
+            });
+            if (isChanged) localStorage.setItem('upscBooks', JSON.stringify(books));
+        }
+
+        function switchTab(tabId, clickedBtn, pageTitle) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.side-menu .side-btn').forEach(btn => { if(!btn.href) btn.classList.remove('active'); });
+            document.getElementById(tabId).style.display = 'block';
+            clickedBtn.classList.add('active');
+            
+            if(document.getElementById('dynamicNavbarTitle')) {
+                document.getElementById('dynamicNavbarTitle').innerText = pageTitle || '';
+            }
+
+            if(tabId === 'approvalsTab') loadGroupedApprovals();
+            if(tabId === 'messagesTab') loadAdminChatList();
+        }
+
+        function toggleFields() {
+            let cat = document.getElementById('bookCategory').value;
+            document.getElementById('ncertClassGroup').style.display = (cat === 'ncert') ? 'block' : 'none';
+            document.getElementById('ministryGroup').style.display = (cat === 'pib') ? 'block' : 'none';
+            document.getElementById('subjectGroup').style.display = (cat === 'pib') ? 'none' : 'block';
+        }
+
+        function saveBook(e) {
+            e.preventDefault();
+            let cat = document.getElementById('bookCategory').value;
+            let priceVal = document.getElementById('bookPrice').value;
+            let finalPrice = priceVal ? parseFloat(priceVal) : 0;
+            
+            let bookData = {
+                id: (editIndex === -1) ? 'book_' + Date.now() : JSON.parse(localStorage.getItem('upscBooks'))[editIndex].id,
+                title: document.getElementById('bookTitle').value,
+                author: document.getElementById('bookAuthor').value,
+                price: finalPrice,
+                dateAdded: document.getElementById('bookDate').value,
+                category: cat,
+                ncertClass: document.getElementById('bookClass').value, 
+                subject: (cat === 'pib') ? '' : document.getElementById('bookSubject').value,
+                ministry: (cat === 'pib') ? document.getElementById('bookMinistry').value : '',
+                image: getCleanUrl(document.getElementById('bookImage').value), 
+                link: document.getElementById('bookLink').value,
+                isNew: true
+            };
+
+            let books = JSON.parse(localStorage.getItem('upscBooks')) || [];
+            if (editIndex === -1) { books.unshift(bookData); alert("Material Published Successfully!"); } 
+            else { books[editIndex] = bookData; alert("Material Updated!"); editIndex = -1; document.getElementById('submitBtn').innerText = "Publish Material Now"; }
+
+            localStorage.setItem('upscBooks', JSON.stringify(books));
+            document.getElementById('uploadForm').reset();
+            document.getElementById('bookDate').valueAsDate = new Date(); 
+            toggleFields(); loadAdminTable('all'); switchTab('manageTab', document.getElementById('btnManage'), 'Library Management');
+        }
+
+        function loadAdminTable(filter) {
+            let books = JSON.parse(localStorage.getItem('upscBooks')) || [];
+            let tbody = document.getElementById('recentUploadsTable');
+            tbody.innerHTML = '';
+            document.querySelectorAll('.filter-tag').forEach(btn => btn.classList.remove('active'));
+            if(event && event.target && event.target.classList) { if(event.target.classList.contains('filter-tag')) event.target.classList.add('active'); }
+
+            if(books.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#94a3b8;">No materials found in library.</td></tr>'; return; }
+
+            books.forEach((book, index) => {
+                if (filter !== 'all' && book.category !== filter) return;
+                let safeImgUrl = getCleanUrl(book.image); 
+                let imgContent = safeImgUrl !== "" ? `<img src="${safeImgUrl}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.src='logo.jpg'">` : `<div style="width:100%; height:100%; background:#f1f5f9; display:flex; align-items:center; justify-content:center;"><i class="fas fa-book" style="color:#cbd5e1;"></i></div>`;
+                let imgWrapper = `<div class="item-img-box" style="margin:0; width:45px; height:60px; min-width:45px; max-width:45px;">${imgContent}</div>`;
+                let priceTag = book.price > 0 ? `<span style="color:#ef4444; font-weight:700;">₹${book.price}</span>` : `<span style="color:#0ea5e9; font-weight:700;">Free</span>`;
+                let detailsHTML = `<div style="font-weight:700; color:#0f172a; font-size: 0.95rem; margin-bottom: 4px;">${book.title}</div><div style="font-size:0.8rem; color:#64748b; font-weight:500;">${book.author} &nbsp;|&nbsp; ${priceTag}</div>`;
+
+                tbody.innerHTML += `<tr><td>${imgWrapper}</td><td style="vertical-align: middle;">${detailsHTML}</td><td style="vertical-align: middle;"><span class="badge-pill">${book.category.replace('-', ' ')}</span></td><td style="vertical-align: middle;"><button onclick="editBook(${index})" style="color:#3b82f6; border:none; background:none; cursor:pointer; margin-right:15px; font-size: 1.15rem; transition:0.2s;"><i class="fas fa-edit"></i></button><button onclick="deleteBook(${index})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-size: 1.15rem; transition:0.2s;"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+        }
+
+        function loadGroupedApprovals() {
+            let requests = JSON.parse(localStorage.getItem('upscAccessRequests')) || [];
+            let tbody = document.getElementById('groupedApprovalsBody');
+            let badge = document.getElementById('approvalCount');
+            
+            let pendingRequests = requests.filter(req => req.status === 'pending');
+            badge.innerText = pendingRequests.length;
+            badge.style.display = pendingRequests.length === 0 ? 'none' : 'inline-flex';
+
+            let grouped = {};
+            pendingRequests.forEach(req => {
+                if(!grouped[req.studentEmail]) {
+                    grouped[req.studentEmail] = { name: req.studentName, email: req.studentEmail, studentId: req.studentId, pendingCount: 0, latestTime: 0 };
+                }
+                grouped[req.studentEmail].pendingCount++;
+                if(req.timestamp > grouped[req.studentEmail].latestTime) grouped[req.studentEmail].latestTime = req.timestamp;
+            });
+
+            tbody.innerHTML = '';
+            let keys = Object.keys(grouped);
+            if(keys.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#94a3b8; font-weight:500;">No pending requests. All caught up!</td></tr>'; return; }
+
+            keys.sort((a, b) => grouped[b].latestTime - grouped[a].latestTime);
+
+            keys.forEach(email => {
+                let data = grouped[email];
+                let displayId = data.studentId ? `ID: #${data.studentId}` : '';
+                let pendingBadge = `<span class="badge-round" style="background:#ef4444;">${data.pendingCount}</span>`;
+                
+                tbody.innerHTML += `<tr>
+                    <td>
+                        <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">${data.name}</div>
+                        <div style="font-size:0.8rem; color:#64748b; font-weight:600; margin-top:2px;">${displayId}</div>
+                    </td>
+                    <td style="color:#475569; font-weight:500;">${data.email}</td>
+                    <td><div style="display:flex; align-items:center; gap:8px; font-weight:600; color:#ef4444;">${pendingBadge} Pending</div></td>
+                    <td><button onclick="openStudentModal('${data.email}', '${data.name}', '${displayId}')" class="btn-primary" style="width:auto; padding:8px 16px; font-size:0.85rem; box-shadow:none;"><i class="fas fa-folder-open"></i> Review Requests</button></td>
+                </tr>`;
+            });
+        }
+
+        function openStudentModal(email, name, displayId) {
+            document.getElementById('modalStudentName').innerText = name;
+            document.getElementById('modalStudentMeta').innerText = `${displayId} | ${email}`;
+            
+            let requests = JSON.parse(localStorage.getItem('upscAccessRequests')) || [];
+            let books = JSON.parse(localStorage.getItem('upscBooks')) || [];
+            
+            let studentReqs = requests.filter(r => r.studentEmail === email);
+            studentReqs.sort((a, b) => (a.status === 'pending' ? -1 : (b.status === 'pending' ? 1 : 0)));
+
+            let tbody = document.getElementById('modalApprovalsBody');
+            tbody.innerHTML = '';
+
+            studentReqs.forEach(req => {
+                let bookDetails = books.find(b => b.id === req.bookId);
+                let bookImgStr = bookDetails && bookDetails.image ? `<img src="${bookDetails.image}" class="approval-req-img" onerror="this.style.display='none'">` : `<div class="approval-req-img" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center;"><i class="fas fa-book" style="color:#cbd5e1;"></i></div>`;
+
+                let statusUI = '';
+                if(req.status === 'approved') {
+                    statusUI = `<div style="color:#059669; font-weight:800; font-size:0.9rem; text-align:center;"><i class="fas fa-check-circle"></i> Approved</div>
+                                <button onclick="toggleModalPayment('${req.requestId}', 'denied', '${email}', '${name}', '${displayId}')" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:6px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; width:100%; transition:0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">Revoke Access</button>`;
+                } else if(req.status === 'denied') {
+                    statusUI = `<div style="color:#e11d48; font-weight:800; font-size:0.9rem; text-align:center;"><i class="fas fa-times-circle"></i> Denied</div>
+                                <button onclick="toggleModalPayment('${req.requestId}', 'approved', '${email}', '${name}', '${displayId}')" style="background:#0e7c41; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; width:100%;">Re-Approve</button>`;
+                } else {
+                    statusUI = `<button onclick="toggleModalPayment('${req.requestId}', 'approved', '${email}', '${name}', '${displayId}')" style="background:#0e7c41; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; box-shadow:0 2px 4px rgba(14,124,65,0.2); width:100%;"><i class="fas fa-check"></i> Approve</button>
+                                <button onclick="toggleModalPayment('${req.requestId}', 'denied', '${email}', '${name}', '${displayId}')" style="background:#f1f5f9; color:#ef4444; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; width:100%;"><i class="fas fa-times"></i> Deny</button>`;
+                }
+
+                let paymentInfo = `<div style="font-size:0.85rem; color:#4b5563;">
+                        <b>UPI ID:</b> ${req.upiId || 'N/A'}<br><b>Mobile:</b> ${req.mobile || 'N/A'}<br><b style="color:#1f2937;">TXN:</b> <span style="font-family:monospace; color:#3b82f6;">${req.transactionId}</span>
+                    </div>`;
+
+                tbody.innerHTML += `
+                    <div class="approval-request-card">
+                        ${bookImgStr}
+                        <div class="approval-req-info">
+                            <div class="approval-req-title">${req.bookTitle} <span style="color:#ef4444; margin-left:8px;">₹${req.price}</span></div>
+                            <div class="approval-req-meta">
+                                <div><i class="fas fa-mobile-alt" style="color:#94a3b8;"></i> ${req.mobile || 'N/A'}</div>
+                                <div><i class="fas fa-at" style="color:#94a3b8;"></i> ${req.upiId || 'N/A'}</div>
+                                <div style="grid-column: 1 / -1; font-family:monospace; color:#3b82f6; font-size:0.9rem;"><i class="fas fa-receipt" style="color:#94a3b8;"></i> ${req.transactionId}</div>
+                            </div>
+                        </div>
+                        <div class="approval-req-actions">
+                            ${statusUI}
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('adminApprovalModal').classList.add('show');
+        }
+
+        function toggleModalPayment(requestId, newStatus, email, name, displayId) {
+            let requests = JSON.parse(localStorage.getItem('upscAccessRequests')) || [];
+            let reqIndex = requests.findIndex(r => r.requestId === requestId);
+            
+            if(reqIndex !== -1) {
+                requests[reqIndex].status = newStatus;
+                localStorage.setItem('upscAccessRequests', JSON.stringify(requests));
+                
+                let purchases = JSON.parse(localStorage.getItem('upscPurchases')) || {};
+                let bookId = requests[reqIndex].bookId;
+
+                if(!purchases[email]) purchases[email] = [];
+
+                if(newStatus === 'approved') {
+                    if(!purchases[email].includes(bookId)) purchases[email].push(bookId);
+                } else if(newStatus === 'denied') {
+                    purchases[email] = purchases[email].filter(id => id !== bookId);
+                }
+
+                localStorage.setItem('upscPurchases', JSON.stringify(purchases));
+                
+                loadGroupedApprovals();
+                openStudentModal(email, name, displayId);
+            }
+        }
+
+        function loadAdminChatList() {
+            let chats = JSON.parse(localStorage.getItem('upscChats')) || {};
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let userList = document.getElementById('adminChatUserList');
+            userList.innerHTML = '';
+
+            let activeEmail = document.getElementById('activeAdminChatEmail').value;
+
+            students.forEach(student => {
+                let history = chats[student.email] || [];
+                let activeClass = (student.email === activeEmail) ? 'active' : '';
+                let lastMsg = history.length > 0 ? history[history.length-1].text.substring(0,25) + "..." : "No messages yet";
+
+                userList.innerHTML += `
+                    <div class="chat-user-item ${activeClass}" onclick="openAdminChat('${student.email}', true)">
+                        <div style="font-weight:700; color:#0f172a; font-size:0.95rem;">${student.name}</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:4px; font-weight:500;">${lastMsg}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function openAdminChat(email, forceScroll) {
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let student = students.find(s => s.email === email);
+            if(!student) return;
+
+            document.getElementById('activeAdminChatEmail').value = email;
+            document.getElementById('adminChatHeader').innerHTML = `<span><i class="fas fa-user-circle" style="margin-right:8px; font-size:1.2rem;"></i> ${student.name}</span>`;
+            
+            document.getElementById('adminChatInput').disabled = false;
+            document.getElementById('adminChatBtn').disabled = false;
+
+            let chats = JSON.parse(localStorage.getItem('upscChats')) || {};
+            let history = chats[email] || [];
+            let body = document.getElementById('adminChatBody');
+            
+            let isNearBottom = body.scrollHeight - body.scrollTop <= body.clientHeight + 50;
+
+            body.innerHTML = '';
+            if(history.length === 0) {
+                body.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:20px; font-weight:500;">No conversation history. Send a message to start.</div>';
+            } else {
+                history.forEach(msg => {
+                    if(msg.sender === 'admin') {
+                        body.innerHTML += `<div class="msg-bubble msg-admin">${msg.text}</div>`;
+                    } else {
+                        body.innerHTML += `<div class="msg-bubble msg-student">${msg.text}</div>`;
+                    }
+                });
+            }
+
+            if(forceScroll || isNearBottom) body.scrollTop = body.scrollHeight;
+            loadAdminChatList(); 
+        }
+
+        function sendAdminMessage() {
+            let email = document.getElementById('activeAdminChatEmail').value;
+            let input = document.getElementById('adminChatInput');
+            let text = input.value.trim();
+            if(!email || !text) return;
+
+            let chats = JSON.parse(localStorage.getItem('upscChats')) || {};
+            if(!chats[email]) chats[email] = [];
+            
+            chats[email].push({ sender: 'admin', text: text, timestamp: Date.now() });
+            localStorage.setItem('upscChats', JSON.stringify(chats));
+            
+            input.value = '';
+            openAdminChat(email, true);
+        }
+
+        function loadStudents() {
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            let needsSave = false;
+            let maxId = 99;
+            students.forEach(s => { if(s.studentId && s.studentId > maxId) maxId = s.studentId; });
+            students.forEach(s => { 
+                if(!s.status) { s.status = 'approved'; needsSave = true; } 
+                if(!s.studentId) { maxId++; s.studentId = maxId; needsSave = true; }
+            });
+            if(needsSave) localStorage.setItem('upscStudents', JSON.stringify(students));
+
+            if(students.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#94a3b8; font-weight:500;">No students registered yet.</td></tr>'; return; }
+            
+            students.sort((a, b) => (a.status === 'pending' ? -1 : (b.status === 'pending' ? 1 : 0)));
+
+            students.forEach(student => {
+                let isOnline = student.lastActive && (Date.now() - student.lastActive < 15000);
+                let dotColor = isOnline ? '#22c55e' : '#ef4444'; 
+                let statusText = isOnline ? 'Online Now' : 'Offline';
+                
+                let onlineUI = `<div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #64748b; margin-top: 6px; font-weight:600;">
+                                    <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; display: inline-block; box-shadow: 0 0 5px ${dotColor};"></span>
+                                    ${statusText}
+                                </div>`;
+
+                let messageUI = '';
+                if(student.nudgeMessage) {
+                    messageUI = `<div style="background: #fef3c7; color: #b45309; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; margin-top: 8px; border: 1px solid #fde68a; font-weight:500;">
+                                    <i class="fas fa-comment-dots"></i> <b>Nudge:</b> "${student.nudgeMessage}"
+                                 </div>`;
+                }
+
+                let statusUI = '';
+                if(student.status === 'approved') {
+                    statusUI = `<div style="color:#059669; font-weight:800; margin-bottom:5px; font-size:0.9rem;"><i class="fas fa-check-circle"></i> Approved</div>
+                                <button onclick="toggleStudentStatus('${student.email}', 'denied')" style="background:#f1f5f9; color:#ef4444; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; transition:0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">Revoke/Deny</button>`;
+                } else if(student.status === 'denied') {
+                    statusUI = `<div style="color:#e11d48; font-weight:800; margin-bottom:5px; font-size:0.9rem;"><i class="fas fa-times-circle"></i> Denied</div>
+                                <button onclick="toggleStudentStatus('${student.email}', 'approved')" style="background:#0e7c41; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; box-shadow:0 2px 4px rgba(14,124,65,0.2);">Approve Now</button>`;
+                } else {
+                    statusUI = `<div style="color:#f59e0b; font-weight:800; margin-bottom:5px; font-size:0.9rem;"><i class="fas fa-clock"></i> Pending</div>
+                                <button onclick="toggleStudentStatus('${student.email}', 'approved')" style="background:#0e7c41; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; margin-right:5px; font-size:0.8rem; font-weight:600; box-shadow:0 2px 4px rgba(14,124,65,0.2);">Approve</button>
+                                <button onclick="toggleStudentStatus('${student.email}', 'denied')" style="background:#f1f5f9; color:#ef4444; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600;">Deny</button>`;
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td style="vertical-align: top;">
+                        <div style="font-weight:800; color:#0f172a; font-size:1.1rem;">${student.name}</div>
+                        <div style="font-size:0.85rem; color:#475569; font-weight:600; margin-top:2px;">ID: #${student.studentId}</div>
+                        ${onlineUI}
+                        ${messageUI}
+                    </td>
+                    <td style="vertical-align: top;"><div style="font-weight:500; color:#334155;">${student.email}</div><div style="font-family:monospace; color:#64748b; font-size:0.85rem; margin-top:6px; background:#f8fafc; padding:4px 8px; border-radius:4px; display:inline-block; border:1px solid #e2e8f0;">Pass: ${student.password}</div></td>
+                    <td style="vertical-align: top;"><span class="badge-pill">${student.dateJoined}</span></td>
+                    <td style="vertical-align: top;">${statusUI}</td>
+                </tr>`;
+            });
+        }
+
+        function toggleStudentStatus(email, newStatus) {
+            let students = JSON.parse(localStorage.getItem('upscStudents')) || [];
+            let sIndex = students.findIndex(s => s.email === email);
+            if(sIndex !== -1) {
+                students[sIndex].status = newStatus;
+                if(newStatus === 'approved') students[sIndex].nudgeMessage = '';
+                localStorage.setItem('upscStudents', JSON.stringify(students));
+                loadStudents();
+            }
+        }
+
+        function editBook(index) { let books = JSON.parse(localStorage.getItem('upscBooks')) || []; let book = books[index]; document.getElementById('bookTitle').value = book.title; document.getElementById('bookAuthor').value = book.author; document.getElementById('bookPrice').value = book.price || ''; document.getElementById('bookCategory').value = book.category; toggleFields(); document.getElementById('bookDate').value = book.dateAdded || ''; document.getElementById('bookClass').value = book.ncertClass || ''; document.getElementById('bookSubject').value = book.subject || ''; document.getElementById('bookMinistry').value = book.ministry || ''; document.getElementById('bookImage').value = getCleanUrl(book.image); document.getElementById('bookLink').value = book.link; editIndex = index; document.getElementById('submitBtn').innerText = "Update Material"; switchTab('uploadTab', document.getElementById('btnUpload'), 'Upload New Material'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        
+        function filterAdminTable(category) { loadAdminTable(category); document.querySelectorAll('.filter-tag').forEach(btn => { btn.classList.remove('active'); if(btn.innerText.toLowerCase().includes(category.replace('-',' ')) || (category === 'all' && btn.innerText.includes('All'))) { btn.classList.add('active'); } }); }
+        
+        function deleteBook(index) { if (confirm("Are you sure you want to delete this material?")) { let books = JSON.parse(localStorage.getItem('upscBooks')); books.splice(index, 1); localStorage.setItem('upscBooks', JSON.stringify(books)); loadAdminTable('all'); } }
+        
+        function logoutAdmin() { window.location.href = 'login.html'; }
+    </script>
+</body>
+</html>
